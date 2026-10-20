@@ -1,6 +1,7 @@
 """Check Linux output preserves GNU stack and RELRO program headers."""
 
 from pathlib import Path
+import platform
 import signal
 import struct
 import subprocess
@@ -73,7 +74,7 @@ def main():
         assert found[PT_GNU_STACK] == (PT_GNU_STACK, 6, 0, 0, 0, 0, 0, 16), found
         assert found[PT_GNU_RELRO][3:5] == (0x500, 0x500), found
 
-        if sys.platform.startswith("linux"):
+        if sys.platform.startswith("linux") and platform.machine() in ("x86_64", "AMD64"):
             for options, mode in (([], "default"), (["--linux-fixed-base", hex(BASE)], "fixed")):
                 for relro_memory_size, keeps_relro in ((0x4000, True), (0x8000, False)):
                     source.write_bytes(executable_image(relro_memory_size))
